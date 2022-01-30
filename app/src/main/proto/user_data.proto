@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option java_package = "ticketchain.mobile.user.storage.proto";
+option java_multiple_files = true;
+
+message Notification {
+  int32 threshold = 1;
+  int32 type = 2;
+  bool enabled = 3;
+  int32 startHour = 4;
+  int32 endHour = 5;
+  string weekdays = 6;
+}
+
+message UserData {
+  string name = 1;
+  int32 age = 2;
+  int32 occupation = 3;
+  repeated int32 widgets = 4;
+  string currentTicket = 5;
+  int32 theme = 6;
+  bool notificationsEnabled = 7;
+  repeated Notification notifications = 8;
+}
