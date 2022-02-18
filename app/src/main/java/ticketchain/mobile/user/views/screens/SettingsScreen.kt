@@ -38,9 +38,10 @@ object SettingsScreen : ApplicationScreen {
     @Composable
     override fun drawer(
         navController: NavHostController,
-        scaffoldState: ScaffoldState
+        scaffoldState: ScaffoldState,
+        accountService: AccountService
     ): @Composable (ColumnScope.() -> Unit) = {
-        DashboardDrawer(navController, scaffoldState)
+        DashboardDrawer(navController, scaffoldState, accountService)
     }
 
     @Composable

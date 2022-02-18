@@ -2,19 +2,63 @@ package ticketchain.mobile.user.services
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import ticketchain.mobile.user.api.TicketChainApi
 import ticketchain.mobile.user.data.*
 import ticketchain.mobile.user.state.AppState
 import ticketchain.mobile.user.storage.UserDataService
 import ticketchain.mobile.user.views.screens.DashboardScreen
 import ticketchain.mobile.user.views.screens.NotificationsScreen
 import ticketchain.mobile.user.views.screens.SettingsScreen
+import ticketchain.mobile.user.views.screens.TicketScreen
 
 class AccountService(
+    val api: TicketChainApi,
     private val userDataService: UserDataService,
-    private val state: AppState
+    val state: AppState
 ) {
 
     lateinit var navController: NavController
+
+    /*
+     * API STUFF
+     */
+
+    @ExperimentalAnimationApi
+    suspend fun requestTicket() {
+        val response = api.requestTicket(state.name ?: "")
+        state.myTicket = response.ticket.Id
+
+        navController.backQueue.clear()
+        navController.navigate(TicketScreen.route)
+    }
+
+    suspend fun countTickets() {
+        val response = api.countTickets()
+        state.countTickets = response.ticketCount
+        state.waitTime = response.waitTime
+    }
+
+    suspend fun getCurrentTicket() {
+        val response = api.getCurrentTicket()
+        state.currentTicket = response.currentTicket
+    }
+
+    suspend fun hasIssues() {
+        val response = api.hasIssues()
+        state.alert = response.hasIssues
+    }
+
+    suspend fun hasTicket() {
+        val response = api.hasTicket(state.name ?: "")
+        if (!response.hasTicket) {
+            state.myTicket = null
+        }
+    }
+
+    /*
+     * ACCOUNT STUFF
+     */
 
     suspend fun loadData() {
         val userData = userDataService.getUserData()
@@ -22,7 +66,7 @@ class AccountService(
         state.theme = Theme.fromValue(userData.theme)
         state.widgets.clear()
         state.widgets.addAll(userData.widgetsList.map { Widget.fromValue(it)!! })
-        state.currentTicket = userData.currentTicket
+        state.myTicket = userData.currentTicket.toIntOrNull()
         state.notificationsEnabled = userData.notificationsEnabled
         state.notifications.clear()
         state.notifications.addAll(userData.notificationsList.map {

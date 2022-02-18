@@ -24,3 +24,9 @@ val CrowdedColor = Color(0xFFFF6B6B)
 val SemiCrowdedColor = Color(0xFFDFCC4F)
 val NotCrowdedColor = Color(0xFF61EB66)
 val RowActiveColor = Color(0x80006FFF)
+
+// Average colors
+val LightCrowdedColor = Color(0xFFC43E32)
+val LightSemiCrowdedColor = Color(0xFFB99119)
+val LightNotCrowdedColor = Color(0xFF20AC33)
+val LightRowActiveColor = Color(0x6588BBFD)

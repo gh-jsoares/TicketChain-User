@@ -13,9 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import ticketchain.mobile.user.ui.theme.CrowdedColor
-import ticketchain.mobile.user.ui.theme.NotCrowdedColor
-import ticketchain.mobile.user.ui.theme.SemiCrowdedColor
+import ticketchain.mobile.user.ui.theme.*
 import ticketchain.mobile.user.views.screens.dashboard.widgets.table.TableHeader
 import ticketchain.mobile.user.views.screens.dashboard.widgets.table.TableRow
 import ticketchain.mobile.user.views.screens.dashboard.widgets.table.TableSubHeader
@@ -25,7 +23,7 @@ import kotlin.math.roundToInt
 data class TableDataRow(val hourStart: Int, val hourEnd: Int, val peopleAmount: Int)
 
 @Composable
-fun TicketAverageTable(rowHeight: Dp, modifier: Modifier) {
+fun TicketAverageTable(rowHeight: Dp, modifier: Modifier, darkTheme: Boolean) {
     val rows = listOf(
         TableDataRow(hourStart = 8, hourEnd = 10, peopleAmount = 56),
         TableDataRow(hourStart = 10, hourEnd = 12, peopleAmount = 19),
@@ -35,6 +33,7 @@ fun TicketAverageTable(rowHeight: Dp, modifier: Modifier) {
     )
 
     val currentHour = LocalTime.now().hour
+    //val currentHour = 11
 
     Column(
         modifier = modifier
@@ -45,9 +44,9 @@ fun TicketAverageTable(rowHeight: Dp, modifier: Modifier) {
         val maxPeopleAmount = rows.maxOf { it.peopleAmount } / 100f
         rows.forEach {
             val chosenColor = when ((it.peopleAmount / maxPeopleAmount).roundToInt()) {
-                in 80..100 -> CrowdedColor
-                in 50..80 -> SemiCrowdedColor
-                else -> NotCrowdedColor
+                in 80..100 -> if (darkTheme) CrowdedColor else LightCrowdedColor
+                in 50..80 -> if (darkTheme) SemiCrowdedColor else LightSemiCrowdedColor
+                else -> if (darkTheme) NotCrowdedColor else LightNotCrowdedColor
             }
 
             TableRow(
@@ -55,11 +54,12 @@ fun TicketAverageTable(rowHeight: Dp, modifier: Modifier) {
                 timeSlot = "${it.hourStart}h - ${it.hourEnd}h",
                 peopleAmount = it.peopleAmount,
                 color = chosenColor,
-                active = currentHour in it.hourStart until it.hourEnd
+                darkTheme = darkTheme,
+                active = currentHour in it.hourStart until it.hourEnd,
             )
         }
 
-        TableLegend()
+        TableLegend(darkTheme)
     }
 }
 
@@ -85,7 +85,7 @@ fun ColorLegend(color: Color, legend: String) {
 }
 
 @Composable
-fun TableLegend() {
+fun TableLegend(darkTheme: Boolean) {
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -95,8 +95,8 @@ fun TableLegend() {
             .padding(top = 10.dp)
             .alpha(0.7f)
     ) {
-        ColorLegend(color = NotCrowdedColor, legend = "Not crowded")
-        ColorLegend(color = SemiCrowdedColor, legend = "Semi-crowded")
-        ColorLegend(color = CrowdedColor, legend = "Crowded")
+        ColorLegend(color = if (darkTheme) NotCrowdedColor else LightNotCrowdedColor, legend = "Not crowded")
+        ColorLegend(color = if (darkTheme) SemiCrowdedColor else LightSemiCrowdedColor, legend = "Semi-crowded")
+        ColorLegend(color = if (darkTheme) CrowdedColor else LightCrowdedColor, legend = "Crowded")
     }
 }

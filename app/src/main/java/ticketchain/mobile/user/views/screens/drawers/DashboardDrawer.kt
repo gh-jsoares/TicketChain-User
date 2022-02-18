@@ -1,5 +1,6 @@
 package ticketchain.mobile.user.views.screens.drawers
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -23,6 +24,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import kotlinx.coroutines.launch
 import ticketchain.mobile.user.R
+import ticketchain.mobile.user.services.AccountService
 import ticketchain.mobile.user.ui.theme.TransparentBlack
 import ticketchain.mobile.user.views.partials.TicketButton
 import ticketchain.mobile.user.views.partials.TicketChainLogo
@@ -34,9 +36,11 @@ data class MenuItem(val displayName: String, val destination: String)
 @Composable
 fun DashboardDrawer(
     navController: NavHostController,
-    scaffoldState: ScaffoldState
+    scaffoldState: ScaffoldState,
+    accountService: AccountService
 ) {
     val coroutineScope = rememberCoroutineScope()
+    var enabled by remember { mutableStateOf(true) }
 
     IconButton(
         onClick = {
@@ -70,28 +74,38 @@ fun DashboardDrawer(
                 modifier = Modifier.padding(vertical = 50.dp)
             )
 
-            TicketMenu(navController, scaffoldState)
+            TicketMenu(navController, scaffoldState, accountService)
         }
-        TicketButton(
-            onClick = {
-                /*TODO*/
-                coroutineScope.launch {
-                    scaffoldState.drawerState.close()
-                    navController.backQueue.clear()
-                    navController.navigate(TicketScreen.route)
-                }
-            },
-            text = stringResource(R.string.drawer_button_request_ticket).uppercase(),
-            icon = Icons.Default.BookmarkAdd,
-            modifier = Modifier
-                .widthIn(max = 200.dp)
-        )
+        AnimatedVisibility(visible = accountService.state.myTicket == null) {
+            TicketButton(
+                onClick = {
+                    enabled = false
+                    coroutineScope.launch {
+                        try {
+                            scaffoldState.drawerState.close()
+                            accountService.requestTicket()
+                        } catch (e: Exception) {
+                        }
+                        enabled = true
+                    }
+                },
+                text = stringResource(R.string.drawer_button_request_ticket).uppercase(),
+                icon = Icons.Default.BookmarkAdd,
+                enabled = enabled,
+                modifier = Modifier
+                    .widthIn(max = 200.dp)
+            )
+        }
     }
 }
 
 @ExperimentalAnimationApi
 @Composable
-fun TicketMenu(navController: NavHostController, scaffoldState: ScaffoldState) {
+fun TicketMenu(
+    navController: NavHostController,
+    scaffoldState: ScaffoldState,
+    accountService: AccountService
+) {
     val coroutineScope = rememberCoroutineScope()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -111,7 +125,6 @@ fun TicketMenu(navController: NavHostController, scaffoldState: ScaffoldState) {
             .fillMaxWidth()
     ) {
         menuItems.forEach { item ->
-            // TODO
             //val isActive = currentRoute == item.destination
             val isActive = currentRoute?.startsWith(item.destination) ?: false
             val color =
@@ -127,10 +140,13 @@ fun TicketMenu(navController: NavHostController, scaffoldState: ScaffoldState) {
                 fontSize = 18.sp,
                 modifier = Modifier
                     .clickable {
-                        // TODO
                         coroutineScope.launch {
                             scaffoldState.drawerState.close()
-                            navController.navigate(item.destination)
+                            if (item.destination == DashboardScreen.route && accountService.state.myTicket != null) {
+                                navController.navigate(TicketScreen.route)
+                            } else {
+                                navController.navigate(item.destination)
+                            }
                         }
                     }
                     .then(

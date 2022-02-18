@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import ticketchain.mobile.user.modifiers.Border
 import ticketchain.mobile.user.modifiers.border
+import ticketchain.mobile.user.ui.theme.LightRowActiveColor
 import ticketchain.mobile.user.ui.theme.RowActiveColor
 
 @Composable
@@ -25,6 +26,7 @@ fun TableRow(
     timeSlot: String,
     peopleAmount: Int,
     color: Color,
+    darkTheme: Boolean,
     active: Boolean = false
 ) {
     Row(
@@ -33,7 +35,7 @@ fun TableRow(
             .fillMaxWidth()
             .height(height)
             .background(
-                color = if (active) RowActiveColor else Color.Unspecified
+                color = if (active && darkTheme) RowActiveColor else if (active) LightRowActiveColor else Color.Unspecified
             )
             .border(
                 bottom = Border(

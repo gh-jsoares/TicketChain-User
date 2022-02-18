@@ -8,10 +8,10 @@ import androidx.compose.material.ScaffoldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -37,9 +37,10 @@ object ScanScreen : ApplicationScreen {
     @Composable
     override fun drawer(
         navController: NavHostController,
-        scaffoldState: ScaffoldState
+        scaffoldState: ScaffoldState,
+        accountService: AccountService
     ): @Composable (ColumnScope.() -> Unit) = {
-        DashboardDrawer(navController, scaffoldState)
+        DashboardDrawer(navController, scaffoldState, accountService)
     }
 
     @Composable
@@ -62,8 +63,14 @@ object ScanScreen : ApplicationScreen {
             scrollState = rememberScrollState()
         }
 
-        val ticketNumber = 150
-        val ticket = "$ticketNumber"
+        val ticketNumber = state.myTicket
+        val ticket = if (ticketNumber != null) "$ticketNumber" else "-"
+        LaunchedEffect(ticketNumber) {
+            if (ticketNumber == null) {
+                navController.backQueue.clear()
+                navController.navigate(DashboardScreen.route)
+            }
+        }
 
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -85,7 +92,7 @@ object ScanScreen : ApplicationScreen {
             )
 
             TicketImage(
-                data = QRCodeUtils.generateQRCodeUrl(ticket),
+                data = QRCodeUtils.generateQRCodeUrl("${state.name}:$ticket"),
                 contentDescription = ticket,
                 modifier = Modifier
                     .padding(vertical = 60.dp)
@@ -106,9 +113,7 @@ object ScanScreen : ApplicationScreen {
                 TicketButton(
                     text = "DISCARD TICKET".uppercase(),
                     onClick = {
-                        /*TODO*/
-                        navController.backQueue.clear()
-                        navController.navigate(DashboardScreen.route)
+                        accountService.state.myTicket = null
                     },
                     color = MaterialTheme.colors.secondaryVariant,
                     icon = Icons.Default.BookmarkRemove

@@ -6,6 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ticketchain.mobile.user.api.TicketChainApi
 import ticketchain.mobile.user.services.AccountService
 import ticketchain.mobile.user.state.AppState
 import ticketchain.mobile.user.storage.UserDataService
@@ -18,8 +19,12 @@ class AppModule {
 
     @Singleton
     @Provides
-    fun getAccountService(userDataService: UserDataService, state: AppState): AccountService =
-        AccountService(userDataService, state)
+    fun getAccountService(
+        api: TicketChainApi,
+        userDataService: UserDataService,
+        state: AppState
+    ): AccountService =
+        AccountService(api, userDataService, state)
 
     @Singleton
     @Provides
@@ -29,4 +34,10 @@ class AppModule {
     @Provides
     fun getUserDataService(@ApplicationContext context: Context): UserDataService =
         UserDataService(context.userDataStore)
+
+
+    @Singleton
+    @Provides
+    fun getApi(store: AppState): TicketChainApi = TicketChainApi(store)
+
 }

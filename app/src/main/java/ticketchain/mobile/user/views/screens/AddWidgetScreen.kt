@@ -33,9 +33,10 @@ object AddWidgetScreen : ApplicationScreen {
     @Composable
     override fun drawer(
         navController: NavHostController,
-        scaffoldState: ScaffoldState
+        scaffoldState: ScaffoldState,
+        accountService: AccountService
     ): @Composable (ColumnScope.() -> Unit) = {
-        DashboardDrawer(navController, scaffoldState)
+        DashboardDrawer(navController, scaffoldState, accountService)
     }
 
     @Composable
@@ -89,7 +90,7 @@ object AddWidgetScreen : ApplicationScreen {
                 modifier = if (widget != Widget.AVERAGE_TABLE) Modifier.scale(0.7f)
                             else Modifier.scale(0.7f).offset(y= (-90).dp)
             ) {
-                widget?.DrawWidget(alert = false)
+                widget?.DrawWidget(state, alert = false, state.theme == Theme.DARK)
             }
 
             Column(

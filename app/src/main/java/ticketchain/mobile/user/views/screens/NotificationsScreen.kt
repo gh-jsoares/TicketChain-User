@@ -1,6 +1,5 @@
 package ticketchain.mobile.user.views.screens
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
@@ -19,7 +18,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import ticketchain.mobile.user.controllers.SnackbarController
 import ticketchain.mobile.user.data.*
@@ -40,9 +38,10 @@ object NotificationsScreen : ApplicationScreen {
     @Composable
     override fun drawer(
         navController: NavHostController,
-        scaffoldState: ScaffoldState
+        scaffoldState: ScaffoldState,
+        accountService: AccountService
     ): @Composable (ColumnScope.() -> Unit) = {
-        DashboardDrawer(navController, scaffoldState)
+        DashboardDrawer(navController, scaffoldState, accountService)
     }
 
     @Composable

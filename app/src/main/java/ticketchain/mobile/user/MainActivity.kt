@@ -3,6 +3,7 @@ package ticketchain.mobile.user
 import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,10 +16,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.rememberScaffoldState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -29,6 +27,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import coil.annotation.ExperimentalCoilApi
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import ticketchain.mobile.user.controllers.SnackbarController
 import ticketchain.mobile.user.services.AccountService
 import ticketchain.mobile.user.state.AppState
@@ -90,7 +92,7 @@ class MainActivity : ComponentActivity() {
 
             val drawer =
                 if (currentScreen?.hasDrawer == true)
-                    currentScreen.drawer(navController, scaffoldState)
+                    currentScreen.drawer(navController, scaffoldState, accountService)
                 else null
 
             // When testing drawer, open automatically
@@ -102,6 +104,27 @@ class MainActivity : ComponentActivity() {
             }
 */
 
+            var job: Job? by remember { mutableStateOf(null) }
+
+            LaunchedEffect(null) {
+                if (job != null) {
+                    job?.cancelAndJoin()
+                }
+                job = launch {
+                    while (true) {
+                        try {
+                            accountService.countTickets()
+                            accountService.hasTicket()
+                            accountService.hasIssues()
+                            accountService.getCurrentTicket()
+                        } catch(e: Exception) {
+                            Log.d("OOPS", e.message ?: "oops error")
+                        }
+                        delay(1000L)
+                    }
+                }
+            }
+
             TicketChainUserTheme(theme = state.theme) {
                 Scaffold(
                     topBar = { currentScreen?.Header(scaffoldState) },
@@ -109,7 +132,7 @@ class MainActivity : ComponentActivity() {
                     drawerContent = drawer,
                     drawerScrimColor = TransparentBlack,
                     drawerBackgroundColor = MaterialTheme.colors.secondary,
-                    bottomBar = { currentScreen?.Bottom(navController, scaffoldState) },
+                    bottomBar = { currentScreen?.Bottom(accountService, navController, scaffoldState) },
                     snackbarHost = { scaffoldState.snackbarHostState }
                 ) { paddingValues ->
                     Surface(

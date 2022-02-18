@@ -14,20 +14,17 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.launch
 import ticketchain.mobile.user.controllers.SnackbarController
-import ticketchain.mobile.user.data.Widget
+import ticketchain.mobile.user.data.Theme
 import ticketchain.mobile.user.services.AccountService
 import ticketchain.mobile.user.state.AppState
-import ticketchain.mobile.user.ui.theme.TransparentBlack
 import ticketchain.mobile.user.views.partials.AlertNotice
-import ticketchain.mobile.user.views.partials.SplitLayout
 import ticketchain.mobile.user.views.partials.TicketButton
 import ticketchain.mobile.user.views.screens.dashboard.Greeter
-import ticketchain.mobile.user.views.screens.dashboard.widgets.TicketAverageTable
 import ticketchain.mobile.user.views.screens.drawers.DashboardDrawer
 import ticketchain.mobile.user.views.screens.headers.DashboardHeader
 
@@ -40,9 +37,10 @@ object DashboardScreen : ApplicationScreen {
     @Composable
     override fun drawer(
         navController: NavHostController,
-        scaffoldState: ScaffoldState
+        scaffoldState: ScaffoldState,
+        accountService: AccountService
     ): @Composable (ColumnScope.() -> Unit) = {
-        DashboardDrawer(navController, scaffoldState)
+        DashboardDrawer(navController, scaffoldState, accountService)
     }
 
     @Composable
@@ -55,7 +53,9 @@ object DashboardScreen : ApplicationScreen {
     }
 
     @Composable
-    override fun Bottom(navController: NavHostController, scaffoldState: ScaffoldState) {
+    override fun Bottom(accountService: AccountService, navController: NavHostController, scaffoldState: ScaffoldState) {
+        val coroutineScope = rememberCoroutineScope()
+        var enabled by remember { mutableStateOf(true) }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
@@ -81,12 +81,18 @@ object DashboardScreen : ApplicationScreen {
             TicketButton(
                 text = "Request Ticket".uppercase(),
                 onClick = {
-                    /*TODO*/
-                    navController.backQueue.clear()
-                    navController.navigate(TicketScreen.route)
+                    enabled = false
+                    coroutineScope.launch {
+                        try {
+                            accountService.requestTicket()
+                        } catch(e: Exception) {
+                            enabled = true
+                        }
+                    }
                 },
                 icon = Icons.Default.BookmarkAdd,
                 small = true,
+                enabled = enabled,
                 width = 260.dp,
                 modifier = Modifier
                     .padding(top = 10.dp, bottom = 10.dp)
@@ -101,6 +107,7 @@ object DashboardScreen : ApplicationScreen {
         accountService: AccountService,
         state: AppState
     ) {
+
         if (scrollState == null) {
             scrollState = rememberScrollState()
         }
@@ -111,7 +118,7 @@ object DashboardScreen : ApplicationScreen {
                 .fillMaxSize()
                 .verticalScroll(scrollState!!)
         ) {
-            val alert = true
+            val alert = state.alert ?: false
             Greeter(state)
             if (alert) {
                 AlertNotice()
@@ -129,7 +136,7 @@ object DashboardScreen : ApplicationScreen {
                 ) {
                     val widgetsCount = state.widgets.size
                     state.widgets.forEachIndexed { index, widget->
-                        widget.DrawWidget(alert = alert)
+                        widget.DrawWidget(state, alert = alert, state.theme == Theme.DARK)
                         if (index < widgetsCount - 1) {
                             Spacer(modifier = Modifier.height(10.dp))
                         }

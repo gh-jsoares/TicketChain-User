@@ -29,12 +29,17 @@ interface ApplicationScreen {
     fun Header(scaffoldState: ScaffoldState)
 
     @Composable
-    fun Bottom(navController: NavHostController, scaffoldState: ScaffoldState) {}
+    fun Bottom(
+        accountService: AccountService,
+        navController: NavHostController,
+        scaffoldState: ScaffoldState
+    ) {}
 
     @Composable
     fun drawer(
         navController: NavHostController,
-        scaffoldState: ScaffoldState
+        scaffoldState: ScaffoldState,
+        accountService: AccountService
     ): (@Composable ColumnScope.() -> Unit)? = null
 
     @Composable

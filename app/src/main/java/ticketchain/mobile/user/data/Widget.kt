@@ -19,9 +19,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ticketchain.mobile.user.state.AppState
 import ticketchain.mobile.user.ui.theme.TransparentBlack
+import ticketchain.mobile.user.utils.toTimeString
 import ticketchain.mobile.user.views.partials.SplitLayout
 import ticketchain.mobile.user.views.screens.dashboard.widgets.TicketAverageTable
+import kotlin.math.roundToInt
 
 enum class Widget {
     AVERAGE_TABLE,
@@ -36,20 +39,21 @@ enum class Widget {
     // 1 -> tickets and wait time
     // 2 -> Recommended hour
     @Composable
-    fun DrawWidget(alert: Boolean) {
+    fun DrawWidget(state: AppState, alert: Boolean, darkTheme: Boolean) {
         when (this) {
             AVERAGE_TABLE -> {
                 TicketAverageTable(
                     rowHeight = if (alert) 60.dp else 70.dp,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    darkTheme
                 )
             }
             AMOUNT_AND_TIME -> {
                 SplitLayout(
-                    leftTopText = "34",
+                    leftTopText = "${state.countTickets ?: "-"}",
                     leftBottomText = "Queued Tickets",
                     leftIcon = Icons.Default.ConfirmationNumber,
-                    rightTopText = "30m",
+                    rightTopText = state.waitTime?.toTimeString() ?: "-",
                     rightBottomText = "Wait time",
                     rightIcon = Icons.Default.Schedule,
                     paddingVertical = 10.dp,
